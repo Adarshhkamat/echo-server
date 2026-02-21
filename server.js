@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import yts from "yt-search";
-import ytdl from "ytdl-core";
+import ytdl from "@distube/ytdl-core";
 
 const app = express();
 
@@ -43,9 +43,8 @@ app.get("/search", async (req, res) => {
     res.json(songs);
 
   } catch (err) {
-    res.status(500).json({
-      error: "Search failed"
-    });
+    console.error(err);
+    res.status(500).json({ error: "Search failed" });
   }
 });
 
@@ -58,11 +57,17 @@ app.get("/stream/:id", async (req, res) => {
   try {
     const id = req.params.id;
 
-    const info = await ytdl.getInfo(id);
+    const videoUrl =
+      `https://www.youtube.com/watch?v=${id}`;
+
+    const info = await ytdl.getInfo(videoUrl);
 
     const format = ytdl.chooseFormat(
       info.formats,
-      { quality: "highestaudio" }
+      {
+        quality: "highestaudio",
+        filter: "audioonly"
+      }
     );
 
     res.json({
@@ -71,7 +76,7 @@ app.get("/stream/:id", async (req, res) => {
     });
 
   } catch (err) {
-    console.error(err);
+    console.error("STREAM ERROR:", err);
 
     res.status(500).json({
       error: "Stream extraction failed"
