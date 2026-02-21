@@ -1,59 +1,48 @@
 import express from "express";
 import cors from "cors";
+import yts from "yt-search";
 
 const app = express();
 
-/*
-========================
-MIDDLEWARE
-========================
-*/
 app.use(cors());
-app.use(express.json());
 
-/*
-========================
-HEALTH CHECK (IMPORTANT)
-========================
-*/
 app.get("/", (req, res) => {
   res.send("Echo Server Running ✅");
 });
 
 /*
-========================
-SEARCH ENDPOINT
-========================
+=====================
+SEARCH REAL SONGS
+=====================
 */
-app.get("/search", (req, res) => {
-  const q = req.query.q || "";
+app.get("/search", async (req, res) => {
+  const q = req.query.q;
 
-  res.json([
-    { id: "demo1", title: `Result for ${q}` },
-    { id: "demo2", title: `Another ${q}` }
-  ]);
+  const result = await yts(q);
+
+  const songs = result.videos.slice(0, 10).map(v => ({
+    id: v.videoId,
+    title: v.title
+  }));
+
+  res.json(songs);
 });
 
 /*
-========================
-STREAM ENDPOINT
-========================
+=====================
+STREAM (TEMP DEMO)
+=====================
 */
 app.get("/stream/:id", (req, res) => {
   res.json({
-    title: "Demo Stream",
+    title: "Streaming",
     url:
       "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
   });
 });
 
-/*
-========================
-✅ RENDER PORT FIX
-========================
-*/
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
-});
+app.listen(PORT, () =>
+  console.log("✅ Server running on", PORT)
+);
